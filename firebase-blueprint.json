@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["student", "super_admin"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Educational course",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "category": { "type": "string" },
+        "level": { "type": "string" },
+        "duration": { "type": "string" },
+        "language": { "type": "string" },
+        "instructor": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "instructor"]
+    },
+    "Lesson": {
+      "title": "Lesson",
+      "description": "Course lesson",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "courseId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "order": { "type": "number" }
+      },
+      "required": ["id", "courseId", "title"]
+    },
+    "Article": {
+      "title": "Article",
+      "description": "Educational blog article",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string" },
+        "category": { "type": "string" },
+        "author": { "type": "string" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "title", "category"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student course enrollment and progress",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "progress": { "type": "number" },
+        "completed": { "type": "boolean" },
+        "enrolledAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "courseId"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Course completion certificate",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "courseId": { "type": "string" },
+        "courseTitle": { "type": "string" },
+        "certificateCode": { "type": "string" },
+        "issuedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "courseId", "certificateCode"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profiles collection"
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "Course" },
+      "description": "Courses collection"
+    },
+    "/lessons/{lessonId}": {
+      "schema": { "$ref": "Lesson" },
+      "description": "Lessons collection"
+    },
+    "/articles/{articleId}": {
+      "schema": { "$ref": "Article" },
+      "description": "Articles collection"
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": { "$ref": "Enrollment" },
+      "description": "Enrollments collection"
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "Certificate" },
+      "description": "Certificates collection"
+    }
+  }
+}

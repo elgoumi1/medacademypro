@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isSuperAdminEmail() {
+      return isSignedIn() && request.auth.token.email == 'mohamedelgoumi60@gmail.com';
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        isSuperAdminEmail() || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserData().role == 'super_admin')
+      );
+    }
+
+    function isPublishingAllowed() {
+      let settingsDoc = get(/databases/$(database)/documents/platform_settings/publishing);
+      let restricted = !settingsDoc.data.keys().hasAll(['ownerOnlyPublishing']) || settingsDoc.data.ownerOnlyPublishing == true;
+      return !restricted || isSuperAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) && (request.resource.data.role != 'super_admin' || isSuperAdminEmail());
+      allow update: if (isOwner(userId) && request.resource.data.role != 'super_admin') || isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /courses/{courseId} {
+      allow read: if true;
+      allow create, update, delete: if isSuperAdmin() && isPublishingAllowed();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if true;
+      allow create, update, delete: if isSuperAdmin() && isPublishingAllowed();
+    }
+
+    match /articles/{articleId} {
+      allow read: if true;
+      allow create, update, delete: if isSuperAdmin() && isPublishingAllowed();
+    }
+
+    match /enrollments/{enrollmentId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow create, update: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isSuperAdmin());
+    }
+
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isSuperAdmin());
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /platform_settings/{settingId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read, create: if isSuperAdmin();
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
